@@ -1,0 +1,10 @@
+.{
+    .name = "zig-noise",
+    .version = "0.0.1",
+    .dependencies = .{
+        .dvui = .{
+            .url = "https://github.com/david-vanderson/dvui/archive/579ffd1a4ef78c49c303ed8d6c09d99f8cab5aaf.tar.gz",
+            .hash = "122063ea7721de4a26816b1c2f78d84daa6fe6d3b6ce10cef3f35ab59cade74a5fa2",
+        },
+    },
+}
