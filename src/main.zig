@@ -6,13 +6,12 @@ pub const Ui = struct {
     const UiBackend = @import("dvui-backend");
 
     arena: std.heap.ArenaAllocator,
-    arena_allocator: std.mem.Allocator,
 
     backend: UiBackend,
     window: dvui.Window,
 
     frame_start: i128,
-    frame_end: u32,
+    frame_end: ?u32,
 
     pub fn init(allocator: std.mem.Allocator, opts: UiBackend.initOptions) !Self {
         var backend = try UiBackend.init(opts);
@@ -21,15 +20,13 @@ pub const Ui = struct {
         window.theme = &dvui.Adwaita.dark;
 
         var arena = std.heap.ArenaAllocator.init(allocator);
-        var arena_allocator = arena.allocator();
 
         return Self{
             .arena = arena,
-            .arena_allocator = arena_allocator,
             .backend = backend,
             .window = window,
             .frame_start = 0,
-            .frame_end = 0,
+            .frame_end = null,
         };
     }
 
@@ -45,7 +42,7 @@ pub const Ui = struct {
 
         // Start the frame
         self.frame_start = self.window.beginWait(self.backend.hasEvent());
-        try self.window.begin(self.arena_allocator, self.frame_start);
+        try self.window.begin(self.arena.allocator(), self.frame_start);
     }
 
     pub fn shouldQuit(self: *Self) !bool {
@@ -53,7 +50,7 @@ pub const Ui = struct {
     }
 
     pub fn endFrame(self: *Self) !void {
-        self.frame_end = (try self.window.end(.{})).?;
+        self.frame_end = try self.window.end(.{});
     }
 
     pub fn render(self: *Self) !void {
@@ -75,8 +72,8 @@ pub fn main() !void {
 
     // Create the UI
     var ui = try Ui.init(allocator, .{
-        .width = 800,
-        .height = 600,
+        .width = 1024,
+        .height = 768,
         .title = "Hello World",
         .vsync = true,
     });
@@ -84,8 +81,11 @@ pub fn main() !void {
     defer ui.deinit();
 
     // Draw the UI
-    while (!try ui.shouldQuit()) {
+    while (true) {
         try ui.beginFrame();
+        if (try ui.shouldQuit()) {
+            break;
+        }
 
         try ui.endFrame();
         try ui.render();
