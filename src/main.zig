@@ -1,21 +1,21 @@
 const std = @import("std");
 const dvui = @import("dvui");
 
-pub const UI = struct {
+pub const Ui = struct {
     const Self = @This();
-    const UIBackend = @import("dvui-backend");
+    const UiBackend = @import("dvui-backend");
 
     arena: std.heap.ArenaAllocator,
     arena_allocator: std.mem.Allocator,
 
-    backend: UIBackend,
+    backend: UiBackend,
     window: dvui.Window,
 
     frame_start: i128,
     frame_end: u32,
 
-    pub fn init(allocator: std.mem.Allocator, opts: UIBackend.initOptions) !Self {
-        var backend = try UIBackend.init(opts);
+    pub fn init(allocator: std.mem.Allocator, opts: UiBackend.initOptions) !Self {
+        var backend = try UiBackend.init(opts);
 
         var window = try dvui.Window.init(@src(), 0, allocator, backend.backend());
         window.theme = &dvui.Adwaita.dark;
@@ -36,9 +36,14 @@ pub const UI = struct {
     pub fn deinit(self: *Self) void {
         self.window.deinit();
         self.backend.deinit();
+        self.arena.deinit();
     }
 
     pub fn beginFrame(self: *Self) !void {
+        // Clear the arena
+        _ = self.arena.reset(.free_all);
+
+        // Start the frame
         self.frame_start = self.window.beginWait(self.backend.hasEvent());
         try self.window.begin(self.arena_allocator, self.frame_start);
     }
@@ -69,7 +74,7 @@ pub fn main() !void {
     defer _ = gpa.deinit();
 
     // Create the UI
-    var ui = try UI.init(allocator, .{
+    var ui = try Ui.init(allocator, .{
         .width = 800,
         .height = 600,
         .title = "Hello World",
