@@ -20,9 +20,14 @@ pub fn main() !void {
     // Defer the UI deinit
     defer ui.deinit();
 
-    // Program state
-    var amplitude_value: f32 = 0.9;
-    var frequency_value: f32 = 0.5;
+    // Define the UI state
+    const UiState = struct {
+        playing: bool,
+        amplitude: f32,
+        frequency: f32,
+    };
+    // Default UI state
+    var ui_state = UiState{ .amplitude = 0.5, .frequency = 0.5, .playing = true };
 
     // Draw the UI
     while (true) {
@@ -33,6 +38,7 @@ pub fn main() !void {
             break;
         }
 
+        // Do our UI in it's own block...
         {
             const box_margin = .{ .x = 16, .y = 16, .w = 16, .h = 16 };
 
@@ -40,13 +46,13 @@ pub fn main() !void {
             defer box.deinit();
 
             try dvui.label(@src(), "Amplitude", .{}, .{ .expand = .horizontal });
-            if (try dvui.slider(@src(), .horizontal, &amplitude_value, .{ .expand = .horizontal })) {
-                try audio_msg_queue.put(.{ .param = .{ .amplitude = amplitude_value } });
+            if (try dvui.slider(@src(), .horizontal, &ui_state.amplitude, .{ .expand = .horizontal })) {
+                try audio_msg_queue.put(.{ .param = .{ .amplitude = ui_state.amplitude } });
             }
 
             try dvui.label(@src(), "Frequency", .{}, .{ .expand = .horizontal });
-            if (try dvui.slider(@src(), .horizontal, &frequency_value, .{ .expand = .horizontal })) {
-                try audio_msg_queue.put(.{ .param = .{ .frequency = frequency_value } });
+            if (try dvui.slider(@src(), .horizontal, &ui_state.frequency, .{ .expand = .horizontal })) {
+                try audio_msg_queue.put(.{ .param = .{ .frequency = ui_state.frequency } });
             }
 
             {
@@ -54,10 +60,16 @@ pub fn main() !void {
                 defer v_box.deinit();
 
                 if (try dvui.button(@src(), "Play", .{ .expand = .horizontal })) {
-                    try audio_msg_queue.put(.play);
+                    if (!ui_state.playing) {
+                        try audio_msg_queue.put(.play);
+                        ui_state.playing = true;
+                    }
                 }
                 if (try dvui.button(@src(), "Stop", .{ .expand = .horizontal })) {
-                    try audio_msg_queue.put(.stop);
+                    if (ui_state.playing) {
+                        try audio_msg_queue.put(.stop);
+                        ui_state.playing = false;
+                    }
                 }
             }
         }
@@ -69,6 +81,6 @@ pub fn main() !void {
 
     std.log.info("Exiting", .{});
 
-    // TODO(SeedyROM): Put??? me back!!!
-    _ = gpa.deinit();
+    // TODO(SeedyROM): Put??? me back!!! I AM BACKKKKKKKKK!!!!
+    // _ = gpa.deinit();
 }
