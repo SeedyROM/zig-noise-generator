@@ -69,6 +69,6 @@ pub fn main() !void {
 
     std.log.info("Exiting", .{});
 
-    // TODO(SeedyROM): Put me back!!!
-    // _ = gpa.deinit();
+    // TODO(SeedyROM): Put??? me back!!!
+    _ = gpa.deinit();
 }

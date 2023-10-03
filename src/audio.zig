@@ -55,7 +55,8 @@ pub fn thread(msgs: *MsgQueue) !void {
             }
         }
 
-        // Sleep for a bit to make sure the main thread has time to join.
+        // Sleep for a bit to make sure we're not spamming the CPU.
+        // TODO: This should be a condition variable.
         std.time.sleep(10 * 1000);
     }
 }
